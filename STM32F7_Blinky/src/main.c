@@ -35,9 +35,9 @@
   ******************************************************************************
   */
 
-/* Includes ------------------------------------------------------------------*/
-#include "main.h"
+#include <stm32f7xx_hal.h>
 #include <stm32746g_discovery.h>
+#include <stm32746g_discovery_lcd.h>
 
 /** @addtogroup STM32F7xx_HAL_Examples
   * @{
@@ -47,25 +47,23 @@
   * @{
   */ 
 
-/* Private typedef -----------------------------------------------------------*/
-/* Private define ------------------------------------------------------------*/
-/* Private macro -------------------------------------------------------------*/
-/* Private variables ---------------------------------------------------------*/
-/* Private function prototypes -----------------------------------------------*/
 static void SystemClock_Config(void);
 static void Error_Handler(void);
 static void MPU_Config(void);
 static void CPU_CACHE_Enable(void);
 
-/* Private functions ---------------------------------------------------------*/
+/**
+  * @brief  LCD FB_StartAddress
+  * LCD Frame buffer start address : starts at beginning of SDRAM
+  */
+#define LCD_FRAME_BUFFER          SDRAM_DEVICE_ADDR
 
 /**
   * @brief  Main program
   * @param  None
   * @retval None
   */
-int main(void)
-{
+int main(void) {
   /* This project template calls firstly two functions in order to configure MPU feature 
      and to enable the CPU Cache, respectively MPU_Config() and CPU_CACHE_Enable().
      These functions are provided as template implementation that User may integrate 
@@ -89,15 +87,29 @@ int main(void)
   /* Configure the System clock to have a frequency of 216 MHz */
   SystemClock_Config();
 
+  BSP_LCD_Init();
+  BSP_LCD_LayerDefaultInit(LTDC_ACTIVE_LAYER, LCD_FRAME_BUFFER);
 
-  /* Add your application code here
-     */
+  /* Set LCD Foreground Layer  */
+  BSP_LCD_SelectLayer(LTDC_ACTIVE_LAYER);
+
+  BSP_LCD_SetFont(&LCD_DEFAULT_FONT);
+
+  /* Clear the LCD */
+  BSP_LCD_SetBackColor(LCD_COLOR_DARKMAGENTA);
+  BSP_LCD_Clear(LCD_COLOR_DARKMAGENTA);
+
+  /* Set the LCD Text Color */
+  BSP_LCD_SetTextColor(LCD_COLOR_DARKBLUE);
+
+  /* Display LCD messages */
+  BSP_LCD_DisplayStringAt(0, 10, (uint8_t *)"STM32F7 Discovery", CENTER_MODE);
+  BSP_LCD_DisplayStringAt(0, 35, (uint8_t *)"Hello World!!!", CENTER_MODE);
 
   BSP_LED_Init(LED_GREEN);
   BSP_LED_On(LED_GREEN);
-  /* Infinite loop */
-  while (1)
-  {
+
+  while (1) {
     BSP_LED_Toggle(LED_GREEN);
     HAL_Delay(500);
 
@@ -183,8 +195,7 @@ static void Error_Handler(void)
   * @param  None
   * @retval None
   */
-static void MPU_Config(void)
-{
+static void MPU_Config(void) {
   MPU_Region_InitTypeDef MPU_InitStruct;
   
   /* Disable the MPU */
@@ -214,8 +225,7 @@ static void MPU_Config(void)
   * @param  None
   * @retval None
   */
-static void CPU_CACHE_Enable(void)
-{
+static void CPU_CACHE_Enable(void) {
   /* Enable I-Cache */
   SCB_EnableICache();
 
@@ -223,26 +233,15 @@ static void CPU_CACHE_Enable(void)
   SCB_EnableDCache();
 }
 
-#ifdef  USE_FULL_ASSERT
 
 /**
-  * @brief  Reports the name of the source file and the source line number
-  *         where the assert_param error has occurred.
-  * @param  file: pointer to the source file name
-  * @param  line: assert_param error line source number
+  * @brief  This function handles SysTick Handler.
+  * @param  None
   * @retval None
   */
-void assert_failed(uint8_t* file, uint32_t line)
-{ 
-  /* User can add his own implementation to report the file name and line number,
-     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
-
-  /* Infinite loop */
-  while (1)
-  {
-  }
+void SysTick_Handler(void) {
+  HAL_IncTick();
 }
-#endif
 
 /**
   * @}
