@@ -112,7 +112,6 @@ int main(void) {
   while (1) {
     BSP_LED_Toggle(LED_GREEN);
     HAL_Delay(500);
-
   }
 }
 
