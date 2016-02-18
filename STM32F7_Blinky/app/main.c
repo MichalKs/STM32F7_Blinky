@@ -38,6 +38,7 @@
 #include <stm32f7xx_hal.h>
 #include <stm32746g_discovery.h>
 #include <stm32746g_discovery_lcd.h>
+#include <stlogo.h>
 
 /** @addtogroup STM32F7xx_HAL_Examples
   * @{
@@ -105,6 +106,8 @@ int main(void) {
   /* Display LCD messages */
   BSP_LCD_DisplayStringAt(0, 10, (uint8_t *)"STM32F7 Discovery", CENTER_MODE);
   BSP_LCD_DisplayStringAt(0, 35, (uint8_t *)"Hello World!!!", CENTER_MODE);
+
+  BSP_LCD_DrawBitmap((BSP_LCD_GetXSize() - 80) / 2, 65, (uint8_t *)stlogo);
 
   BSP_LED_Init(LED_GREEN);
   BSP_LED_On(LED_GREEN);
