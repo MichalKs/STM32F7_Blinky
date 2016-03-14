@@ -3,7 +3,6 @@
 #include <stm32f7xx_hal.h>
 
 static void SystemClock_Config(void);
-static void Error_Handler(void);
 static void MPU_Config(void);
 static void CPU_CACHE_Enable(void);
 
@@ -91,7 +90,7 @@ static void SystemClock_Config(void)
   * @param  None
   * @retval None
   */
-static void Error_Handler(void) {
+void Error_Handler(void) {
 
   while(1) {
   }

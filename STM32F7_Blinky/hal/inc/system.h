@@ -19,5 +19,6 @@
 #define INC_SYSTEM_H_
 
 void SYSTEM_Init(void);
+void Error_Handler(void);
 
 #endif /* INC_SYSTEM_H_ */

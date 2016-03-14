@@ -4,6 +4,17 @@
 #include "led.h"
 #include "timers.h"
 #include "system.h"
+#include "comm.h"
+
+#define DEBUG
+
+#ifdef DEBUG
+#define print(str, args...) printf(""str"%s",##args,"")
+#define println(str, args...) printf("MAIN--> "str"%s",##args,"\r\n")
+#else
+#define print(str, args...) (void)0
+#define println(str, args...) (void)0
+#endif
 
 /**
   * @brief  LCD FB_StartAddress
@@ -13,6 +24,7 @@
 
 void softTimerCallback(void) {
   LED_Toggle(_LED0);
+  println("Test string sent from STM32F7!!!"); // Print test string
 }
 
 /**
@@ -22,6 +34,8 @@ void softTimerCallback(void) {
 int main(void) {
 
   SYSTEM_Init(); // Initialize STM32F7 and HAL (SYSTICK)
+  COMM_Init(115200);
+  println("Starting program"); // Print a string to terminal
 
   // Add a soft timer with callback running every 1000ms
   int8_t timerID = TIMER_AddSoftTimer(1000, softTimerCallback);
