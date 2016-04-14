@@ -1,11 +1,12 @@
 
+#include <string.h>
 #include <stm32f7xx_hal.h>
 #include <stm32746g_discovery_lcd.h>
+#include <stm32746g_discovery_ts.h>
 #include "led.h"
 #include "timers.h"
 #include "system.h"
 #include "comm.h"
-#include <string.h>
 
 #define DEBUG
 
@@ -48,21 +49,28 @@ int main(void) {
   BSP_LCD_Init();
   BSP_LCD_LayerDefaultInit(LTDC_ACTIVE_LAYER, LCD_FRAME_BUFFER);
 
-  /* Set LCD Foreground Layer  */
+  // Set LCD Foreground Layer
   BSP_LCD_SelectLayer(LTDC_ACTIVE_LAYER);
 
-  BSP_LCD_SetFont(&LCD_DEFAULT_FONT);
-
-  /* Clear the LCD */
-  BSP_LCD_SetBackColor(LCD_COLOR_DARKMAGENTA);
+  // Clear the LCD
+//  BSP_LCD_SetBackColor(LCD_COLOR_DARKMAGENTA);
   BSP_LCD_Clear(LCD_COLOR_DARKMAGENTA);
 
   /* Set the LCD Text Color */
   BSP_LCD_SetTextColor(LCD_COLOR_DARKBLUE);
 
   /* Display LCD messages */
-  BSP_LCD_DisplayStringAt(0, 10, (uint8_t *)"STM32F7 Discovery", CENTER_MODE);
-  BSP_LCD_DisplayStringAt(0, 35, (uint8_t *)"Hello World!!!", CENTER_MODE);
+  BSP_LCD_DisplayStringAtLine(0, (uint8_t *)"STM32F7 Discovery");
+  BSP_LCD_DisplayStringAtLine(1, (uint8_t *)"Hello World!!!");
+
+  BSP_LCD_DrawLine(50, 50, 150, 150);
+  BSP_LCD_FillRect(100, 100, 100, 100);
+  BSP_LCD_FillCircle(300, 50, 40);
+
+  BSP_TS_Init(BSP_LCD_GetXSize(), BSP_LCD_GetYSize());
+
+  TS_StateTypeDef tsState;
+
   //*******************LCD test END
 
   uint8_t buf[255]; // buffer for receiving commands from PC
@@ -81,6 +89,12 @@ int main(void) {
       if (!strcmp((char*)buf, ":LED0 OFF")) {
         LED_ChangeState(_LED0, LED_OFF);
       }
+    }
+
+    // check for touch screen events
+    BSP_TS_GetState(&tsState);
+    if (tsState.touchDetected == 1) {
+      LED_Toggle(_LED0);
     }
 
     TIMER_SoftTimersUpdate(); // run timers

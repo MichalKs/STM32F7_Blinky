@@ -60,7 +60,6 @@ void _sbrk() {
  * @param buf
  * @param len
  * @return
- * TODO Implement this function
  */
 int _read(int fileHandle, char *buf, int len) {
 
@@ -73,7 +72,6 @@ int _read(int fileHandle, char *buf, int len) {
  * @param buf
  * @param len
  * @return
- * TODO Expand this function
  */
 int _write(int fileHandle, char *buf, int len) {
 

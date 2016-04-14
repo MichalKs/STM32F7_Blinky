@@ -43,11 +43,8 @@ void SYSTEM_Init(void) {
   *            VDD(V)                         = 3.3
   *            Main regulator output voltage  = Scale1 mode
   *            Flash Latency(WS)              = 7
-  * @param  None
-  * @retval None
   */
-static void SystemClock_Config(void)
-{
+static void SystemClock_Config(void) {
   RCC_ClkInitTypeDef RCC_ClkInitStruct;
   RCC_OscInitTypeDef RCC_OscInitStruct;
 
@@ -61,14 +58,12 @@ static void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLN = 432;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
   RCC_OscInitStruct.PLL.PLLQ = 9;
-  if(HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
-  {
+  if(HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
     Error_Handler();
   }
 
   /* activate the OverDrive to reach the 216 Mhz Frequency */
-  if(HAL_PWREx_EnableOverDrive() != HAL_OK)
-  {
+  if(HAL_PWREx_EnableOverDrive() != HAL_OK) {
     Error_Handler();
   }
 
@@ -79,20 +74,18 @@ static void SystemClock_Config(void)
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
-  if(HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_7) != HAL_OK)
-  {
+  if(HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_7) != HAL_OK) {
     Error_Handler();
   }
 }
 
 /**
   * @brief  This function is executed in case of error occurrence.
-  * @param  None
-  * @retval None
   */
 void Error_Handler(void) {
 
   while(1) {
+
   }
 }
 
@@ -100,8 +93,6 @@ void Error_Handler(void) {
   * @brief  Configure the MPU attributes as Write Through for SRAM1/2.
   * @note   The Base Address is 0x20010000 since this memory interface is the AXI.
   *         The Region Size is 256KB, it is related to SRAM1 and SRAM2  memory size.
-  * @param  None
-  * @retval None
   */
 static void MPU_Config(void) {
   MPU_Region_InitTypeDef MPU_InitStruct;
@@ -130,8 +121,6 @@ static void MPU_Config(void) {
 
 /**
   * @brief  CPU L1-Cache enable.
-  * @param  None
-  * @retval None
   */
 static void CPU_CACHE_Enable(void) {
   /* Enable I-Cache */
