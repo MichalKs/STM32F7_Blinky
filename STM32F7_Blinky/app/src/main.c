@@ -3,6 +3,7 @@
 #include <stm32f7xx_hal.h>
 #include <stm32746g_discovery_lcd.h>
 #include <stm32746g_discovery_ts.h>
+#include <stm32746g_discovery_sd.h>
 #include "led.h"
 #include "timers.h"
 #include "system.h"
@@ -26,7 +27,7 @@
 
 void softTimerCallback(void) {
 //  LED_Toggle(_LED0);
-  println("Test string sent from STM32F7!!!"); // Print test string
+//  println("Test string sent from STM32F7!!!"); // Print test string
 }
 
 /**
@@ -73,6 +74,19 @@ int main(void) {
 
   //*******************LCD test END
 
+  BSP_SD_Init();
+
+  HAL_SD_CardInfoTypedef cardInfo;
+
+  if (BSP_SD_IsDetected()) {
+
+    BSP_SD_GetCardInfo(&cardInfo);
+
+    println("SD card has %d blocks", cardInfo.CardBlockSize);
+
+
+  }
+
   uint8_t buf[255]; // buffer for receiving commands from PC
   uint8_t len;      // length of command
 
@@ -95,6 +109,11 @@ int main(void) {
     BSP_TS_GetState(&tsState);
     if (tsState.touchDetected == 1) {
       LED_Toggle(_LED0);
+      BSP_TS_Get_GestureId(&tsState);
+      if (tsState.gestureId != 0)
+        println("Gesture id = %d", tsState.gestureId);
+
+//      BSP_TS_ResetTouchData(&tsState);
     }
 
     TIMER_SoftTimersUpdate(); // run timers
