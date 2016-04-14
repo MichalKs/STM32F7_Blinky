@@ -23,9 +23,11 @@
  * @{
  */
 
-static void  (*rxCallback)(uint8_t);  ///< Callback function for receiving data
-static int   (*txCallback)(uint8_t*); ///< Callback function for transmitting data (fills up buffer with data to send)
+static void  (*rxCallback)(char);  ///< Callback function for receiving data
+static int   (*txCallback)(char*); ///< Callback function for transmitting data (fills up buffer with data to send)
 static UART_HandleTypeDef uartHandle; ///< Handle for UART peripheral
+
+static char rxBuffer[1];  ///< Reception buffer - we receive one character at a time
 
 static volatile int isSendingData; ///< Flag saying if UART is currently sending any data
 
@@ -49,7 +51,7 @@ int UART6_IsSendingData(void) {
 void UART6_SendData(void) {
 
   // has to be static to serve as a buffer for UART
-  static uint8_t buf[64];
+  static uint8_t buf[UART_BUF_LEN_TX];
 
   // if no function set do nothing
   if (txCallback == NULL) {
@@ -76,7 +78,7 @@ void UART6_SendData(void) {
  * @param rxCb
  * @param txCb
  */
-void UART6_Init(int baud, void(*rxCb)(uint8_t), int(*txCb)(uint8_t*) ) {
+void UART6_Init(int baud, void(*rxCb)(char), int(*txCb)(char*) ) {
 
   txCallback = txCb;
   rxCallback = rxCb;
@@ -103,9 +105,34 @@ void UART6_Init(int baud, void(*rxCb)(uint8_t), int(*txCb)(uint8_t*) ) {
     Error_Handler();
   }
 
+  /*##-2- Put UART peripheral in IT reception process ########################*/
+  /* Any data received will be stored in "UserTxBuffer" buffer  */
+  if(HAL_UART_Receive_IT(&uartHandle, (uint8_t*)rxBuffer, 1) != HAL_OK)
+  {
+    /* Transfer error in reception process */
+    Error_Handler();
+  }
+
 }
 
 // ********************** HAL UART callbacks and IRQs **********************
+
+/**
+  * @brief  Transfer completed callback
+  * @param  huart UART handle
+  */
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+
+  if (rxCallback == NULL) {
+    return;
+  }
+
+  // send the received char to upper layer
+  rxCallback(*rxBuffer);
+
+  // start another reception
+  HAL_UART_Receive_IT(huart, (uint8_t *)(rxBuffer), 1);
+}
 
 /**
  * @brief Transfer completed callback (called whenever IRQ sends the whole buffer)

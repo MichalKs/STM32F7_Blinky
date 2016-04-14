@@ -49,8 +49,8 @@ static FIFO_TypeDef txFifo; ///< TX FIFO
 
 static uint8_t gotFrame;  ///< Nonzero signals a new frame (number of received frames)
 
-int COMM_TxCallback(uint8_t* c);
-void COMM_RxCallback(uint8_t c);
+int COMM_TxCallback(char* c);
+void COMM_RxCallback(char c);
 
 /**
  * @brief Initialize communication terminal interface.
@@ -100,7 +100,6 @@ void COMM_Putc(char c) {
  * @brief Get a char from USART2
  * @return Received char.
  * @warning Blocking function! Waits until char is received.
- * FIXME Doesn't work yet for STM32F7
  */
 char COMM_Getc(void) {
 
@@ -109,11 +108,7 @@ char COMM_Getc(void) {
   while (FIFO_IsEmpty(&rxFifo) == 1); // wait until buffer is not empty
   // buffer not empty => char was received
 
-//  USART_ITConfig(USART2, USART_IT_RXNE, DISABLE); // disable RX interrupt
-
   FIFO_Pop(&rxFifo,&c); // Get data from RX buffer
-
-//  USART_ITConfig(USART2, USART_IT_RXNE, ENABLE); // enable RX interrupt
 
   return c;
 }
@@ -126,9 +121,8 @@ char COMM_Getc(void) {
  * @retval 1 No frame in buffer
  * @retval 2 Frame error
  * TODO Add maximum length checking so as not to overflow
- * FIXME Doesn't work yet for STM32F7
  */
-uint8_t COMM_GetFrame(uint8_t* buf, uint8_t* len) {
+int COMM_GetFrame(uint8_t* buf, uint8_t* len) {
 
   uint8_t c;
   *len = 0; // zero out length variable
@@ -165,9 +159,8 @@ uint8_t COMM_GetFrame(uint8_t* buf, uint8_t* len) {
 /**
  * @brief Callback for receiving data from PC.
  * @param c Data sent from lower layer software.
- * FIXME Doesn't work yet for STM32F7
  */
-void COMM_RxCallback(uint8_t c) {
+void COMM_RxCallback(char c) {
 
   uint8_t res = FIFO_Push(&rxFifo, c); // Put data in RX buffer
 
@@ -183,7 +176,7 @@ void COMM_RxCallback(uint8_t c) {
  * @retval 0 There is no more data in buffer (stop transmitting)
  * @retval 1 Valid data in c
  */
-int COMM_TxCallback(uint8_t* buf) {
+int COMM_TxCallback(char* buf) {
 
   if (FIFO_IsEmpty(&txFifo)) {
     return 0;

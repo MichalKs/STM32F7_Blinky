@@ -61,7 +61,7 @@
 #define COMM_HAL_IrqEnable()  HAL_NVIC_EnableIRQ(USARTx_IRQn);
 #define COMM_HAL_IrqDisable() HAL_NVIC_DisableIRQ(USARTx_IRQn);
 
-void    UART6_Init(int baud, void(*rxCb)(uint8_t), int(*txCb)(uint8_t*));
+void    UART6_Init(int baud, void(*rxCb)(char), int(*txCb)(char*));
 int     UART6_IsSendingData(void);
 void    UART6_SendData(void);
 

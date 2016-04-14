@@ -5,6 +5,7 @@
 #include "timers.h"
 #include "system.h"
 #include "comm.h"
+#include <string.h>
 
 #define DEBUG
 
@@ -23,7 +24,7 @@
 #define LCD_FRAME_BUFFER          SDRAM_DEVICE_ADDR
 
 void softTimerCallback(void) {
-  LED_Toggle(_LED0);
+//  LED_Toggle(_LED0);
   println("Test string sent from STM32F7!!!"); // Print test string
 }
 
@@ -38,7 +39,7 @@ int main(void) {
   println("Starting program"); // Print a string to terminal
 
   // Add a soft timer with callback running every 1000ms
-  int8_t timerID = TIMER_AddSoftTimer(10, softTimerCallback);
+  int8_t timerID = TIMER_AddSoftTimer(1000, softTimerCallback);
   TIMER_StartSoftTimer(timerID); // start the timer
 
   LED_Init(_LED0); // Add an LED
@@ -64,7 +65,24 @@ int main(void) {
   BSP_LCD_DisplayStringAt(0, 35, (uint8_t *)"Hello World!!!", CENTER_MODE);
   //*******************LCD test END
 
+  uint8_t buf[255]; // buffer for receiving commands from PC
+  uint8_t len;      // length of command
+
   while (1) {
+
+    // check for new frames from PC
+    if (!COMM_GetFrame(buf, &len)) {
+      println("Got frame of length %d: %s", (int)len, (char*)buf);
+
+      // control LED0 from terminal
+      if (!strcmp((char*)buf, ":LED0 ON")) {
+        LED_ChangeState(_LED0, LED_ON);
+      }
+      if (!strcmp((char*)buf, ":LED0 OFF")) {
+        LED_ChangeState(_LED0, LED_OFF);
+      }
+    }
+
     TIMER_SoftTimersUpdate(); // run timers
   }
 }
