@@ -20,8 +20,6 @@
 
 
 #include <comm.h>
-#include <stm32f7xx_hal.h>
-extern UART_HandleTypeDef UartHandle;
 
 /**
  * @defgroup  STUBS STUBS
@@ -79,7 +77,10 @@ int _read(int fileHandle, char *buf, int len) {
  */
 int _write(int fileHandle, char *buf, int len) {
 
-  HAL_UART_Transmit(&UartHandle, (uint8_t *)buf, len, 0xFFFF);
+  // send all data to COMM module
+  for (int i = 0; i < len; i++) {
+    COMM_Putc(buf[i]);
+  }
 
   return len;
 }

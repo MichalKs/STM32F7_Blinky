@@ -17,7 +17,6 @@
 
 #include <comm.h>
 #include <fifo.h>
-// HAL
 #include <stdio.h>
 #include <uart6.h>
 
@@ -49,27 +48,27 @@ static FIFO_TypeDef txFifo; ///< TX FIFO
 
 static uint8_t gotFrame;  ///< Nonzero signals a new frame (number of received frames)
 
-uint8_t COMM_TxCallback(uint8_t* c);
-void    COMM_RxCallback(uint8_t c);
+int COMM_TxCallback(uint8_t* c);
+void COMM_RxCallback(uint8_t c);
 
 /**
  * @brief Initialize communication terminal interface.
  *
  * @param baud Required baud rate
  */
-void COMM_Init(uint32_t baud) {
+void COMM_Init(int baud) {
 
   // pass baud rate
   // callback for received data and callback for
   // transmitted data
   COMM_HAL_Init(baud, COMM_RxCallback, COMM_TxCallback);
 
-  // Initialize RX FIFO
+  // Initialize RX FIFO for receiving data from
   rxFifo.buf = rxBuffer;
   rxFifo.len = COMM_BUF_LEN;
   FIFO_Add(&rxFifo);
 
-  // Initialize TX FIFO
+  // Initialize TX FIFO for transferring data to PC
   txFifo.buf = txBuffer;
   txFifo.len = COMM_BUF_LEN;
   FIFO_Add(&txFifo);
@@ -83,14 +82,18 @@ void COMM_Init(uint32_t baud) {
  * @param c Char to send.
  */
 void COMM_Putc(uint8_t c) {
+
   // disable IRQ so it doesn't screw up FIFO count - leads to errors in transmission
-  COMM_HAL_IrqDisable;
+//  COMM_HAL_IrqDisable();
 
   FIFO_Push(&txFifo,c); // Put data in TX buffer
-  COMM_HAL_TxEnable();  // Enable low level transmitter
+
+  if (!HAL_UART_IsSendingData()) {
+    HAL_UART_SendData();
+  }
 
   // enable IRQ again
-  COMM_HAL_IrqEnable;
+//  COMM_HAL_IrqEnable();
 }
 /**
  * @brief Get a char from USART2
@@ -174,14 +177,19 @@ void COMM_RxCallback(uint8_t c) {
  * @retval 0 There is no more data in buffer (stop transmitting)
  * @retval 1 Valid data in c
  */
-uint8_t COMM_TxCallback(uint8_t* c) {
+int COMM_TxCallback(uint8_t* buf) {
 
-  if (FIFO_Pop(&txFifo, c) == 0) { // If buffer not empty
-    return 1;
-  } else {
+  if (FIFO_IsEmpty(&txFifo)) {
     return 0;
   }
 
+  // get all the data at one go
+  int i = 0;
+  while (!FIFO_Pop(&txFifo, buf+i)) {
+    i++;
+  }
+
+  return i;
 }
 
 /**

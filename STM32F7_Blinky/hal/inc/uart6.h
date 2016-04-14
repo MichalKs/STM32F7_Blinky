@@ -31,14 +31,16 @@
  * @{
  */
 
-void    UART6_Init(uint32_t baud, void(*rxCb)(uint8_t), uint8_t(*txCb)(uint8_t*));
+void    UART6_Init(uint32_t baud, void(*rxCb)(uint8_t), int(*txCb)(uint8_t*));
 void    UART6_TxEnable(void);
+int     HAL_UART_IsSendingData(void);
+void    HAL_UART_SendData(void);
 
 // HAL functions for use in higher level
-#define COMM_HAL_Init       UART6_Init
-#define COMM_HAL_TxEnable   UART6_TxEnable
-#define COMM_HAL_IrqEnable  NVIC_EnableIRQ(USART2_IRQn);
-#define COMM_HAL_IrqDisable NVIC_DisableIRQ(USART2_IRQn);
+#define COMM_HAL_Init         UART6_Init
+#define COMM_HAL_TxEnable()   UART6_TxEnable
+#define COMM_HAL_IrqEnable()  HAL_NVIC_EnableIRQ(USART6_IRQn);
+#define COMM_HAL_IrqDisable() HAL_NVIC_DisableIRQ(USART6_IRQn);
 
 /**
  * @}
