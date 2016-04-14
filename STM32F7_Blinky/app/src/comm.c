@@ -37,11 +37,12 @@
  * @{
  */
 
-#define COMM_BUF_LEN     2048    ///< COMM buffer lengths
-#define COMM_TERMINATOR '\r'     ///< COMM frame terminator character
+#define COMM_BUF_LEN_TX UART_BUF_LEN_TX    ///< COMM buffer lengths
+#define COMM_BUF_LEN_RX 64     ///< COMM buffer lengths
+#define COMM_TERMINATOR '\r'   ///< COMM frame terminator character
 
-static uint8_t rxBuffer[COMM_BUF_LEN]; ///< Buffer for received data.
-static uint8_t txBuffer[COMM_BUF_LEN]; ///< Buffer for transmitted data.
+static uint8_t rxBuffer[COMM_BUF_LEN_RX]; ///< Buffer for received data.
+static uint8_t txBuffer[COMM_BUF_LEN_TX]; ///< Buffer for transmitted data.
 
 static FIFO_TypeDef rxFifo; ///< RX FIFO
 static FIFO_TypeDef txFifo; ///< TX FIFO
@@ -53,54 +54,55 @@ void COMM_RxCallback(uint8_t c);
 
 /**
  * @brief Initialize communication terminal interface.
- *
  * @param baud Required baud rate
  */
 void COMM_Init(int baud) {
 
   // pass baud rate
-  // callback for received data and callback for
-  // transmitted data
+  // callback for received data and callback for transmitted data
   COMM_HAL_Init(baud, COMM_RxCallback, COMM_TxCallback);
 
-  // Initialize RX FIFO for receiving data from
+  // Initialize RX FIFO for receiving data from PC
   rxFifo.buf = rxBuffer;
-  rxFifo.len = COMM_BUF_LEN;
+  rxFifo.len = COMM_BUF_LEN_RX;
   FIFO_Add(&rxFifo);
 
   // Initialize TX FIFO for transferring data to PC
   txFifo.buf = txBuffer;
-  txFifo.len = COMM_BUF_LEN;
+  txFifo.len = COMM_BUF_LEN_TX;
   FIFO_Add(&txFifo);
 
 }
 /**
- * @brief Send a char to USART2.
+ * @brief Send a char to PC.
  * @details This function can be called in stubs.c _write
  * function in order for printf to work
  *
  * @param c Char to send.
  */
-void COMM_Putc(uint8_t c) {
+void COMM_Putc(char c) {
 
   // disable IRQ so it doesn't screw up FIFO count - leads to errors in transmission
-//  COMM_HAL_IrqDisable();
+  COMM_HAL_IrqDisable();
 
   FIFO_Push(&txFifo,c); // Put data in TX buffer
 
-  if (!HAL_UART_IsSendingData()) {
-    HAL_UART_SendData();
+  // enable transmitter if inactive
+  if (!COMM_HAL_IsTxActive()) {
+    COMM_HAL_TxEnable();
   }
 
   // enable IRQ again
-//  COMM_HAL_IrqEnable();
+  COMM_HAL_IrqEnable();
 }
+
 /**
  * @brief Get a char from USART2
  * @return Received char.
  * @warning Blocking function! Waits until char is received.
+ * FIXME Doesn't work yet for STM32F7
  */
-uint8_t COMM_Getc(void) {
+char COMM_Getc(void) {
 
   uint8_t c;
 
@@ -115,6 +117,7 @@ uint8_t COMM_Getc(void) {
 
   return c;
 }
+
 /**
  * @brief Get a complete frame from USART2 (nonblocking)
  * @param buf Buffer for data (data will be null terminated for easier string manipulation)
@@ -123,6 +126,7 @@ uint8_t COMM_Getc(void) {
  * @retval 1 No frame in buffer
  * @retval 2 Frame error
  * TODO Add maximum length checking so as not to overflow
+ * FIXME Doesn't work yet for STM32F7
  */
 uint8_t COMM_GetFrame(uint8_t* buf, uint8_t* len) {
 
@@ -161,6 +165,7 @@ uint8_t COMM_GetFrame(uint8_t* buf, uint8_t* len) {
 /**
  * @brief Callback for receiving data from PC.
  * @param c Data sent from lower layer software.
+ * FIXME Doesn't work yet for STM32F7
  */
 void COMM_RxCallback(uint8_t c) {
 
@@ -171,6 +176,7 @@ void COMM_RxCallback(uint8_t c) {
     gotFrame++;
   }
 }
+
 /**
  * @brief Callback for transmitting data to lower layer
  * @param c Transmitted data

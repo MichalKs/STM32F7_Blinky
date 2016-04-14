@@ -31,8 +31,8 @@
  */
 
 void    COMM_Init(int baud);
-void    COMM_Putc(uint8_t c);
-uint8_t COMM_Getc(void);
+void    COMM_Putc(char c);
+char    COMM_Getc(void);
 uint8_t COMM_GetFrame(uint8_t* buf, uint8_t* len);
 
 /**

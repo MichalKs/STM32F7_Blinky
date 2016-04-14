@@ -1,11 +1,11 @@
 /**
- * @file    uart2.c
- * @brief   Controlling USART2
- * @date    12 kwi 2014
+ * @file    uart6.c
+ * @brief   Controlling UART6
+ * @date    14.04.2016
  * @author  Michal Ksiezopolski
  * 
  * @verbatim
- * Copyright (c) 2014 Michal Ksiezopolski.
+ * Copyright (c) 2016 Michal Ksiezopolski.
  * All rights reserved. This program and the 
  * accompanying materials are made available 
  * under the terms of the GNU Public License 
@@ -15,37 +15,16 @@
  * @endverbatim
  */
 
-#include <stm32f7xx_hal.h>
-#include <uart6.h>
+#include "uart6.h"
+#include "system.h"
 
 /**
  * @addtogroup UART6
  * @{
  */
 
-/* Definition for USARTx clock resources */
-#define USARTx                           USART6
-#define USARTx_CLK_ENABLE()              __HAL_RCC_USART6_CLK_ENABLE()
-#define USARTx_RX_GPIO_CLK_ENABLE()      __HAL_RCC_GPIOC_CLK_ENABLE()
-#define USARTx_TX_GPIO_CLK_ENABLE()      __HAL_RCC_GPIOC_CLK_ENABLE()
-
-#define USARTx_FORCE_RESET()             __HAL_RCC_USART6_FORCE_RESET()
-#define USARTx_RELEASE_RESET()           __HAL_RCC_USART6_RELEASE_RESET()
-
-/* Definition for USARTx Pins */
-#define USARTx_TX_PIN                    GPIO_PIN_6
-#define USARTx_TX_GPIO_PORT              GPIOC
-#define USARTx_TX_AF                     GPIO_AF8_USART6
-#define USARTx_RX_PIN                    GPIO_PIN_7
-#define USARTx_RX_GPIO_PORT              GPIOC
-#define USARTx_RX_AF                     GPIO_AF8_USART6
-
-/* Definition for USARTx's NVIC: used for receiving data over Rx pin */
-#define USARTx_IRQn                      USART6_IRQn
-#define USARTx_IRQHandler                USART6_IRQHandler
-
-static void  (*rxCallback)(uint8_t);   ///< Callback function for receiving data
-static int   (*txCallback)(uint8_t*);  ///< Callback function for transmitting data (fills up buffer with data to send)
+static void  (*rxCallback)(uint8_t);  ///< Callback function for receiving data
+static int   (*txCallback)(uint8_t*); ///< Callback function for transmitting data (fills up buffer with data to send)
 static UART_HandleTypeDef uartHandle; ///< Handle for UART peripheral
 
 static volatile int isSendingData; ///< Flag saying if UART is currently sending any data
@@ -57,7 +36,7 @@ static volatile int isSendingData; ///< Flag saying if UART is currently sending
  * @retval 1 UART is sending data
  * @retval 0 UART is not sending data
  */
-int HAL_UART_IsSendingData(void) {
+int UART6_IsSendingData(void) {
   return isSendingData;
 }
 
@@ -67,10 +46,10 @@ int HAL_UART_IsSendingData(void) {
  * However if the IRQ is not running this function has to be called manually to
  * enable the IRQ.
  */
-void HAL_UART_SendData(void) {
+void UART6_SendData(void) {
 
   // has to be static to serve as a buffer for UART
-  static uint8_t buf[2048];
+  static uint8_t buf[64];
 
   // if no function set do nothing
   if (txCallback == NULL) {
@@ -92,22 +71,15 @@ void HAL_UART_SendData(void) {
 }
 
 /**
- * @brief Transfer completed callback (called whenever IRQ sends the whole buffer)
- * @param huart UART handle
- */
-void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
-  HAL_UART_SendData();
-}
-
-/**
  * @brief Initialize USART2
  * @param baud
  * @param rxCb
  * @param txCb
  */
-void UART6_Init(uint32_t baud, void(*rxCb)(uint8_t), int(*txCb)(uint8_t*) ) {
+void UART6_Init(int baud, void(*rxCb)(uint8_t), int(*txCb)(uint8_t*) ) {
 
   txCallback = txCb;
+  rxCallback = rxCb;
 
   /*##-1- Configure the UART peripheral ######################################*/
   /* Put the USART peripheral in the Asynchronous mode (UART Mode) */
@@ -131,6 +103,16 @@ void UART6_Init(uint32_t baud, void(*rxCb)(uint8_t), int(*txCb)(uint8_t*) ) {
     Error_Handler();
   }
 
+}
+
+// ********************** HAL UART callbacks and IRQs **********************
+
+/**
+ * @brief Transfer completed callback (called whenever IRQ sends the whole buffer)
+ * @param huart UART handle
+ */
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart) {
+  UART6_SendData();
 }
 
 void HAL_UART_MspInit(UART_HandleTypeDef *huart) {

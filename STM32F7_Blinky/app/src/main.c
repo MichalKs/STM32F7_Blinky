@@ -38,7 +38,7 @@ int main(void) {
   println("Starting program"); // Print a string to terminal
 
   // Add a soft timer with callback running every 1000ms
-  int8_t timerID = TIMER_AddSoftTimer(1000, softTimerCallback);
+  int8_t timerID = TIMER_AddSoftTimer(10, softTimerCallback);
   TIMER_StartSoftTimer(timerID); // start the timer
 
   LED_Init(_LED0); // Add an LED
